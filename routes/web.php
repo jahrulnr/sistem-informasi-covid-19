@@ -13,11 +13,17 @@ Route::get('/admin', 'App\Http\Controllers\AdminController@admin');
 Route::post('/admin/verify', 'App\Http\Controllers\AdminController@verify');
 Route::get('/admin/keluar', 'App\Http\Controllers\AdminController@logout');
 
+// Data Kelurahan
+Route::get('/admin/kelurahan', 'App\Http\Controllers\AdminController@kelurahan');
+Route::post('/admin/kelurahan/simpan_data', 'App\Http\Controllers\AdminController@simpan_data_kelurahan');
+Route::post('/admin/kelurahan/ubah_data', 'App\Http\Controllers\AdminController@ubah_data_kelurahan');
+Route::get('/admin/kelurahan/hapus_data/{id}', 'App\Http\Controllers\AdminController@hapus_data_kelurahan');
+
 // Data Covid 19
-Route::get('/admin/data_covid19', 'App\Http\Controllers\AdminController@data_covid19');
-Route::post('/admin/data_covid19/simpan_data', 'App\Http\Controllers\AdminController@simpan_data_covid19');
-Route::post('/admin/data_covid19/ubah_data', 'App\Http\Controllers\AdminController@ubah_data_covid19');
-Route::get('/admin/data_covid19/hapus_data/{id}', 'App\Http\Controllers\AdminController@hapus_data_covid19');
+Route::get('/admin/data_covid19/{id_kelurahan}', 'App\Http\Controllers\AdminController@data_covid19');
+Route::post('/admin/data_covid19/{id_kelurahan}/simpan_data', 'App\Http\Controllers\AdminController@simpan_data_covid19');
+Route::post('/admin/data_covid19/{id_kelurahan}/ubah_data', 'App\Http\Controllers\AdminController@ubah_data_covid19');
+Route::get('/admin/data_covid19/{id_kelurahan}/hapus_data/{id}', 'App\Http\Controllers\AdminController@hapus_data_covid19');
 
 // Periode
 Route::get('/admin/periode', 'App\Http\Controllers\AdminController@periode');

@@ -59,17 +59,42 @@
     <div class="sidebar">
       <!-- Sidebar Menu -->
       <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
 
           <li class="nav-header">MENU</li>
 
-          <li class="nav-item">
-            <a href="{{ asset('admin/data_covid19') }}" class="nav-link">
+          <!-- <style type="text/css">
+            .nav-sidebar .nav-link p > .right {
+              position: absolute !important;
+              right: 1rem !important;
+              top: .7rem !important;
+            }
+          </style> -->
+
+          <li class="nav-item menu-open">
+            <div class="nav-link">
               <i class="nav-icon fas fa-virus"></i>
               <p>
                 Data Covid-19
+                <i class="right fas fa-angle-left"></i>
               </p>
-            </a>
+            </div>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="{{ asset('admin/kelurahan') }}" class="ml-3 nav-link">
+                  <i class="fas fa-edit nav-icon"></i>
+                  <p>Kelola Kelurahan</p>
+                </a>
+              </li>
+              @foreach($kelurahan as $l)
+              <li class="nav-item">
+                <a href="{{ asset('admin/data_covid19/' . $l->id_kelurahan) }}" class="ml-3 nav-link">
+                  <i class="fas fa-city nav-icon"></i>
+                  <p>{{ $l->kelurahan }}</p>
+                </a>
+              </li>
+              @endforeach
+            </ul>
           </li>
           <li class="nav-item">
             <a href="{{ asset('admin/periode') }}" class="nav-link">

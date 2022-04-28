@@ -47,27 +47,96 @@ class AdminController extends Controller{
 		return redirect('/admin');
 	}
 
-	function data_covid19(){
+	function kelurahan(){
 		if(empty(session('user_name'))) redirect('/admin');
-		$data_covid19 = DB::table(DB::raw('data_covid, priode'))
-			->where('data_covid.id_priode', DB::raw('priode.id_priode'))
-			->get();
-		$data_periode = DB::table('priode')->get();
+		$kelurahan = DB::table('kelurahan')->get();
 
 	    return view('admin.data_covid19', [
 	    	'i' => 1,
+	    	'kelurahan' => $kelurahan,
+	    	'data' => $kelurahan
+	    ]);
+	}
+
+	function simpan_data_kelurahan(Request $request){
+		// cek user
+		if(empty(session('user_name'))) redirect('/admin');
+
+		// proses
+		$simpan_data = DB::table('kelurahan')->insert([
+			'kelurahan' => $request->kelurahan
+		]);
+
+		if($simpan_data > 0){
+			return redirect('/admin/kelurahan#simpan_berhasil');
+		}else{
+			return redirect('/admin/kelurahan#simpan_gagal');
+		}
+	}
+
+	function ubah_data_kelurahan(Request $request){
+		// cek user
+		if(empty(session('user_name'))) redirect('/admin');
+
+		// proses
+		// return json_encode($_POST);
+		$simpan_data = DB::table('kelurahan')
+			->where('id_kelurahan', $request->id_kelurahan)
+			->update([
+				'kelurahan' => $request->kelurahan
+			]);
+
+		if($simpan_data > 0){
+			return redirect('/admin/kelurahan#ubah_berhasil');
+		}else{
+			return redirect('/admin/kelurahan#ubah_gagal');
+		}
+	}
+
+	function hapus_data_kelurahan($id){
+		// cek user
+		if(empty(session('user_name'))) redirect('/admin');
+
+		// proses
+		$hapus_data = DB::table('kelurahan')
+			->where('id_kelurahan', $id)
+			->delete();
+
+		if($hapus_data > 0){
+			return redirect('/admin/kelurahan#hapus_berhasil');
+		}else{
+			return redirect('/admin/kelurahan#hapus_gagal');
+		}
+	}
+
+	function data_covid19($id_kelurahan){
+		if(empty(session('user_name'))) redirect('/admin');
+		$data_covid19 = DB::table(DB::raw('kelurahan, data_covid, priode'))
+			->where('kelurahan.id_kelurahan', DB::raw('data_covid.id_kelurahan'))
+			->where('data_covid.id_priode', DB::raw('priode.id_priode'))
+			->where('kelurahan.id_kelurahan', $id_kelurahan)
+			->get();
+		$data_periode = DB::table('priode')->get();
+		$kelurahan = DB::table('kelurahan')->orderby('kelurahan', 'asc')->get();
+		$data_kelurahan = DB::table('kelurahan')->where('id_kelurahan', $id_kelurahan)->first();
+
+	    return view('admin.data_covid19_perdaerah', [
+	    	'i' => 1,
+	    	'id_kelurahan' => $id_kelurahan,
+	    	'kelurahan' => $kelurahan,
+	    	'data_kelurahan' => $data_kelurahan,
 	    	'data' => $data_covid19,
 	    	'periode' => $data_periode
 	    ]);
 	}
 
-	function simpan_data_covid19(Request $request){
+	function simpan_data_covid19($id_kelurahan, Request $request){
 		// cek user
 		if(empty(session('user_name'))) redirect('/admin');
 
 		// proses
 		$simpan_data = DB::table('data_covid')->insert([
-			'kelurahan' => $request->kelurahan,
+			'id_kelurahan' => $id_kelurahan,
 			'rw' => $request->rw,
 			'jumlah_pasien_covid' => $request->jumlah_pasien_covid,
 			'jumlah_rumah' => $request->jumlah_rumah,
@@ -76,22 +145,20 @@ class AdminController extends Controller{
 		]);
 
 		if($simpan_data > 0){
-			return redirect('/admin/data_covid19#simpan_berhasil');
+			return redirect(url()->previous() . '#simpan_berhasil');
 		}else{
-			return redirect('/admin/data_covid19#simpan_gagal');
+			return redirect(url()->previous() . '#simpan_gagal');
 		}
 	}
 
-	function ubah_data_covid19(Request $request){
+	function ubah_data_covid19($id_kelurahan, Request $request){
 		// cek user
 		if(empty(session('user_name'))) redirect('/admin');
 
 		// proses
-		// return json_encode($_POST);
 		$simpan_data = DB::table('data_covid')
 			->where('id_data_covid', $request->id_data_covid)
 			->update([
-				'kelurahan' => $request->kelurahan,
 				'rw' => $request->rw,
 				'jumlah_pasien_covid' => $request->jumlah_pasien_covid,
 				'jumlah_rumah' => $request->jumlah_rumah,
@@ -100,13 +167,13 @@ class AdminController extends Controller{
 			]);
 
 		if($simpan_data > 0){
-			return redirect('/admin/data_covid19#ubah_berhasil');
+			return redirect(url()->previous() . '#ubah_berhasil');
 		}else{
-			return redirect('/admin/data_covid19#ubah_gagal');
+			return redirect(url()->previous() . '#ubah_gagal');
 		}
 	}
 
-	function hapus_data_covid19($id){
+	function hapus_data_covid19($id_kelurahan, $id){
 		// cek user
 		if(empty(session('user_name'))) redirect('/admin');
 
@@ -116,9 +183,9 @@ class AdminController extends Controller{
 			->delete();
 
 		if($hapus_data > 0){
-			return redirect('/admin/data_covid19#hapus_berhasil');
+			return redirect(url()->previous() . '#hapus_berhasil');
 		}else{
-			return redirect('/admin/data_covid19#hapus_gagal');
+			return redirect(url()->previous() . '#hapus_gagal');
 		}
 	}
 
@@ -128,7 +195,13 @@ class AdminController extends Controller{
 
 		// proses
 		$data = DB::table('priode')->get();
-	    return view('admin.periode', ['i'=>1, 'data'=>$data]);
+		$kelurahan = DB::table('kelurahan')->get();
+
+	    return view('admin.periode', [
+	    	'i'=>1, 
+	    	'kelurahan' => $kelurahan,
+		    'data'=>$data
+		]);
 	}
 
 	function simpan_data_periode(Request $request){
@@ -193,7 +266,13 @@ class AdminController extends Controller{
 
 		// proses
 		$data = DB::table('user')->get();
-	    return view('admin.user', ['i'=>1, 'data'=>$data]);
+		$kelurahan = DB::table('kelurahan')->get();
+
+	    return view('admin.user', [
+	    	'i'=>1, 
+	    	'kelurahan' => $kelurahan,
+		    'data'=>$data
+		]);
 	}
 
 	function simpan_data_user(Request $request){
