@@ -33,7 +33,7 @@
 		text-align: center;
 	}	
 
-	#id_priode_style {
+	#id_periode_style {
 		width: 100%;
 		height: calc(2.25rem + 2px);
 		padding: .375rem .75rem;
@@ -49,8 +49,12 @@
 		transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 	}
 
-	#id_priode_style span{
+	#id_periode_style span{
 		padding-left: 0.2rem;
+	}
+
+	select {
+		font-family: sans-serif, FontAwesome
 	}
 </style>
 
@@ -67,6 +71,9 @@
 							No.
 						</th>
 						<th>
+							Periode
+						</th>
+						<th>
 							RW
 						</th>
 						<th>
@@ -79,9 +86,6 @@
 							Status
 						</th>
 						<th>
-							Periode
-						</th>
-						<th>
 							Aksi
 						</th>
 					</tr>
@@ -89,10 +93,13 @@
 				<tbody>
 					@foreach($data as $d)
 					<tr>
-						<td align="center">
+						<td align="center" class="w-auto">
 							{{ $i }}.
 						</td>
-						<td align="center">
+						<td>
+							{{ date("d/m/y", strtotime($d->dari_tgl)) }} - {{ date("d/m/y", strtotime($d->sampai_tgl)) }}
+						</td>
+						<td align="center" class="w-auto">
 							{{ $d->rw }}
 						</td>
 						<td align="center">
@@ -101,19 +108,21 @@
 						<td align="center">
 							{{ $d->jumlah_rumah }}
 						</td>
-						<td>
-							{{ $d->status }}
-						</td>
-						<td>
-								{{ date("d/m/y", strtotime($d->dari_tgl)) }} - {{ date("d/m/y", strtotime($d->sampai_tgl)) }}
+						<td class="w-auto">
+						@php
+							$stat = Sisfor::status($d->jumlah_pasien_covid);
+							$color = $stat[0];
+							$status = $stat[1];
+						@endphp
+							<span class="fas fa-circle" style="color:var({{ $color }})"></span> {{ $status }}
 						</td>
 						<td align="center">
 							<data class="d-none" id="data-{{ $i }}">{{ json_encode($d) }}</data>
 							<button class="btn btn-primary btn-sm mb-1" id="btn_edit" data-toggle="modal" data-target="#edit" onclick="ubah_data('#data-{{ $i++ }}')">
-								<span class="fas fa-pencil-alt fa-sm"></span>
+								<span class="fas fa-pencil-alt fa-sm"></span> Ubah
 							</button>
 							<button class="btn btn-danger btn-sm mb-1" data-toggle="modal" data-target="#hapus" onclick="hapus_data({{ $d->id_data_covid }})">
-								<span class="fas fa-trash fa-sm"></span>
+								<span class="fas fa-trash fa-sm"></span> Hapus
 							</button>
 						</td>
 					</tr>
@@ -138,38 +147,31 @@
       	@csrf
       	<input type="hidden" name="id_data_covid" />
         <div class="form-group">
-					<label>RW</label>
-					<input type="text" class="form-control" data-inputmask="'mask': '999'" data-mask="" im-insert="true" name="rw" placeholder="rw ..." required>
-				</div>
+			<label>RW</label>
+			<input type="text" class="form-control" data-inputmask="'mask': '999'" data-mask="" im-insert="true" name="rw" placeholder="rw ..." required>
+		</div>
         <div class="form-group">
-					<label>Jumlah Pasien Covid</label>
-					<input type="number" name="jumlah_pasien_covid" class="form-control" min="0" placeholder="0" required />
-				</div>
+			<label>Jumlah Pasien Covid</label>
+			<input type="number" name="jumlah_pasien_covid" class="form-control" min="0" placeholder="0" required />
+		</div>
         <div class="form-group">
-					<label>Jumlah Rumah</label>
-					<input type="number" name="jumlah_rumah" class="form-control" min="0" placeholder="0" required />
-				</div>
+			<label>Jumlah Rumah</label>
+			<input type="number" name="jumlah_rumah" class="form-control" min="0" placeholder="0" required />
+		</div>
         <div class="form-group">
-					<label>Status</label>
-					<select name="status" class="form-control" required>
-						<option selected disabled value="">-- Pilih Status --</option>
-						<option value="Hijau">Hijau</option>
-						<option value="Kuning">Kuning</option>
-						<option value="Orange">Orange</option>
-						<option value="Merah">Merah</option>
-					</select>
-				</div>
-        <div class="form-group">
-					<label>Periode</label>
-					<select class="form-control col-12" name="id_priode" id="id_priode" required>
-						<option value="" selected disabled>-- Pilih Periode --</option>
-						@foreach($periode as $p)
-						<option value="{{ $p->id_priode }}">
-							{{ date("d/m/y", strtotime($p->dari_tgl)) }} - {{ date("d/m/y", strtotime($p->sampai_tgl)) }}
-						</option>
-						@endforeach
-					</select>
-				</div>
+			<label>Periode</label>
+			<select class="form-control col-12" name="id_periode" id="id_periode" required>
+				<option disabled>-- Pilih Periode --</option>
+				@php
+					$i = 0;
+				@endphp
+				@foreach($periode as $p)
+				<option {{ ($i++ === 0) ? "selected" : "" }} value="{{ $p->id_periode }}">
+					{{ date("d/m/y", strtotime($p->dari_tgl)) }} - {{ date("d/m/y", strtotime($p->sampai_tgl)) }}
+				</option>
+				@endforeach
+			</select>
+		</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -218,8 +220,7 @@
 	function tambah_data(){
 		$('#label_edit').html("Tambah Data Covid-19");
 		$('#form_data').attr('action', '/admin/data_covid19/{{ $id_kelurahan }}/simpan_data');
-		$('select[name="id_priode"]').val(null).trigger('change');
-		$('form')[2].reset();
+		$('form')[1].reset();
 	}
 
 	function ubah_data(id){
@@ -231,8 +232,7 @@
 		$('input[name="rw"]').val(data.rw);
 		$('input[name="jumlah_pasien_covid"]').val(data.jumlah_pasien_covid);
 		$('input[name="jumlah_rumah"]').val(data.jumlah_rumah);
-		$('select[name="status"]').val(data.status);
-		$('select[name="id_priode"]').val(data.id_priode).trigger('change');
+		$('select[name="id_periode"]').val(data.id_periode).trigger('change');
 	}
 
 	function hapus_data(id){
@@ -261,8 +261,8 @@
   	}
 
   	$('#periode').change(function(){
-			$('#btn_periode').click();
-		});
+		$('#btn_periode').click();
+	});
 
     $("#data_covid").DataTable({
       "responsive": true,
@@ -278,9 +278,9 @@
 			}
     });
 
-	  $('input[name="rw"]').inputmask();
-  	$('#id_priode').select2();
-  	$('span[aria-labelledby="select2-id_priode-container"]').attr('id', 'id_priode_style');
+	$('input[name="rw"]').inputmask();
+  	$('#id_periode').select2();
+  	$('span[aria-labelledby="select2-id_periode-container"]').attr('id', 'id_periode_style');
 
     $('#form_data').submit(function(event){
     	var rw = $('input[name="rw"]').val().replaceAll('_', '');

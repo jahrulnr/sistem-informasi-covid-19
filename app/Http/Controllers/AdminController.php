@@ -4,8 +4,18 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use \App\Helpers\Sisfor;
  
 class AdminController extends Controller{
+
+	public function __construct()
+	{
+		$this->middleware(function ($request, $next) {
+			Sisfor::updatePeriode();
+			return $next($request);
+		});    
+	}
+
 	function admin(){
 		if(session('user_name')){
 			return view('admin');
@@ -48,8 +58,8 @@ class AdminController extends Controller{
 	}
 
 	function kelurahan(){
-		if(empty(session('user_name'))) redirect('/admin');
-		$kelurahan = DB::table('kelurahan')->get();
+		if(empty(session('user_name'))) return redirect('/admin');
+		$kelurahan = DB::table('kelurahan')->orderby('kelurahan', 'asc')->get();
 
 	    return view('admin.data_covid19', [
 	    	'i' => 1,
@@ -60,7 +70,7 @@ class AdminController extends Controller{
 
 	function simpan_data_kelurahan(Request $request){
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
+		if(empty(session('user_name'))) return redirect('/admin');
 
 		// proses
 		$simpan_data = DB::table('kelurahan')->insert([
@@ -76,7 +86,7 @@ class AdminController extends Controller{
 
 	function ubah_data_kelurahan(Request $request){
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
+		if(empty(session('user_name'))) return redirect('/admin');
 
 		// proses
 		// return json_encode($_POST);
@@ -95,7 +105,7 @@ class AdminController extends Controller{
 
 	function hapus_data_kelurahan($id){
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
+		if(empty(session('user_name'))) return redirect('/admin');
 
 		// proses
 		$hapus_data = DB::table('kelurahan')
@@ -110,13 +120,13 @@ class AdminController extends Controller{
 	}
 
 	function data_covid19($id_kelurahan){
-		if(empty(session('user_name'))) redirect('/admin');
-		$data_covid19 = DB::table(DB::raw('kelurahan, data_covid, priode'))
+		if(empty(session('user_name'))) return redirect('/admin');
+		$data_covid19 = DB::table(DB::raw('kelurahan, data_covid, periode'))
 			->where('kelurahan.id_kelurahan', DB::raw('data_covid.id_kelurahan'))
-			->where('data_covid.id_priode', DB::raw('priode.id_priode'))
+			->where('data_covid.id_periode', DB::raw('periode.id_periode'))
 			->where('kelurahan.id_kelurahan', $id_kelurahan)
 			->get();
-		$data_periode = DB::table('priode')->get();
+		$data_periode = DB::table('periode')->orderBy("id_periode", "desc")->get();
 		$kelurahan = DB::table('kelurahan')->orderby('kelurahan', 'asc')->get();
 		$data_kelurahan = DB::table('kelurahan')->where('id_kelurahan', $id_kelurahan)->first();
 
@@ -132,7 +142,7 @@ class AdminController extends Controller{
 
 	function simpan_data_covid19($id_kelurahan, Request $request){
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
+		if(empty(session('user_name'))) return redirect('/admin');
 
 		// proses
 		$simpan_data = DB::table('data_covid')->insert([
@@ -140,8 +150,7 @@ class AdminController extends Controller{
 			'rw' => $request->rw,
 			'jumlah_pasien_covid' => $request->jumlah_pasien_covid,
 			'jumlah_rumah' => $request->jumlah_rumah,
-			'status' => $request->status,
-			'id_priode' => $request->id_priode
+			'id_periode' => $request->id_periode
 		]);
 
 		if($simpan_data > 0){
@@ -153,7 +162,7 @@ class AdminController extends Controller{
 
 	function ubah_data_covid19($id_kelurahan, Request $request){
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
+		if(empty(session('user_name'))) return redirect('/admin');
 
 		// proses
 		$simpan_data = DB::table('data_covid')
@@ -162,8 +171,7 @@ class AdminController extends Controller{
 				'rw' => $request->rw,
 				'jumlah_pasien_covid' => $request->jumlah_pasien_covid,
 				'jumlah_rumah' => $request->jumlah_rumah,
-				'status' => $request->status,
-				'id_priode' => $request->id_priode
+				'id_periode' => $request->id_periode
 			]);
 
 		if($simpan_data > 0){
@@ -175,7 +183,7 @@ class AdminController extends Controller{
 
 	function hapus_data_covid19($id_kelurahan, $id){
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
+		if(empty(session('user_name'))) return redirect('/admin');
 
 		// proses
 		$hapus_data = DB::table('data_covid')
@@ -191,78 +199,33 @@ class AdminController extends Controller{
 
 	function periode() {
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
-
-		// proses
-		$data = DB::table('priode')->get();
+		if(empty(session('user_name'))) return redirect('/admin');
 		$kelurahan = DB::table('kelurahan')->get();
 
 	    return view('admin.periode', [
-	    	'i'=>1, 
-	    	'kelurahan' => $kelurahan,
-		    'data'=>$data
+	    	'kelurahan' => $kelurahan
 		]);
 	}
 
-	function simpan_data_periode(Request $request){
+	function kosongkan_data_periode($id){
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
-
-		// proses
-		$data = DB::table('priode')
-			->insert([
-				'dari_tgl' => $request->dari_tgl,
-				'sampai_tgl' => $request->sampai_tgl
-			]);
-
-		if($data > 0){
-			return redirect('/admin/periode#simpan_berhasil');
-		}else{
-			return redirect('/admin/periode#simpan_gagal');
-		}
-	}
-
-	function ubah_data_periode(Request $request){
-		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
-
-		// proses
-		$data = DB::table('priode')
-			->where('id_priode', $request->id_priode)
-			->update([
-				'dari_tgl' => $request->dari_tgl,
-				'sampai_tgl' => $request->sampai_tgl
-			]);
-
-		if($data > 0){
-			return redirect('/admin/periode#ubah_berhasil');
-		}else{
-			return redirect('/admin/periode#ubah_gagal');
-		}
-	}
-
-	function hapus_data_periode($id){
-		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
+		if(empty(session('user_name'))) return redirect('/admin');
 
 		// proses
 		$covid = DB::table('data_covid')
-			->where('id_priode', $id)
-			->delete();
-		$data = DB::table('priode')
-			->where('id_priode', $id)
+			->where('id_periode', $id)
 			->delete();
 
-		if($data > 0){
-			return redirect('/admin/periode#hapus_berhasil');
+		if($covid > 0){
+			return redirect('/admin/periode#kosongkan_berhasil');
 		}else{
-			return redirect('/admin/periode#hapus_gagal');
+			return redirect('/admin/periode#kosongkan_gagal');
 		}
 	}
 
 	function user() {
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
+		if(empty(session('user_name'))) return redirect('/admin');
 
 		// proses
 		$data = DB::table('user')->get();
@@ -291,7 +254,7 @@ class AdminController extends Controller{
 
 	function ubah_data_user(Request $request){
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
+		if(empty(session('user_name'))) return redirect('/admin');
 
 		// proses
 		$user['nama'] = $request->nama;
@@ -310,7 +273,7 @@ class AdminController extends Controller{
 
 	function hapus_data_user($id){
 		// cek user
-		if(empty(session('user_name'))) redirect('/admin');
+		if(empty(session('user_name'))) return redirect('/admin');
 
 		// proses
 		$hitung_user = DB::table('user')->count();

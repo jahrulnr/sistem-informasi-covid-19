@@ -33,7 +33,7 @@
 		text-align: center;
 	}	
 
-	#id_priode_style {
+	#id_periode_style {
 		width: 100%;
 		height: calc(2.25rem + 2px);
 		padding: .375rem .75rem;
@@ -49,7 +49,7 @@
 		transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 	}
 
-	#id_priode_style span{
+	#id_periode_style span{
 		padding-left: 0.2rem;
 	}
 </style>
@@ -73,19 +73,19 @@
 			<tbody>
 				@foreach($data as $d)
 				<tr>
-					<td align="center">
+					<td align="center" class="w-auto">
 						{{ $i }}.
 					</td>
 					<td>
 						{{ $d->kelurahan }}
 					</td>
-					<td align="center">
+					<td align="center" class="w-auto">
 						<data class="d-none" id="data-{{ $i }}">{{ json_encode($d) }}</data>
 						<button class="btn btn-primary btn-sm mb-1" id="btn_edit" data-toggle="modal" data-target="#edit" onclick="ubah_data('#data-{{ $i++ }}')">
-							<span class="fas fa-pencil-alt fa-sm"></span>
+							<span class="fas fa-pencil-alt fa-sm"></span> Ubah
 						</button>
 						<button class="btn btn-danger btn-sm mb-1" data-toggle="modal" data-target="#hapus" onclick="hapus_data({{ $d->id_kelurahan }})">
-							<span class="fas fa-trash fa-sm"></span>
+							<span class="fas fa-trash fa-sm"></span> Hapus
 						</button>
 					</td>
 				</tr>
@@ -163,7 +163,7 @@
 	function tambah_data(){
 		$('#label_edit').html("Tambah Data Kelurahan");
 		$('#form_data').attr('action', '/admin/kelurahan/simpan_data');
-		$('form')[2].reset();
+		$('form')[1].reset();
 	}
 
 	function ubah_data(id){

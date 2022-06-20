@@ -9,6 +9,7 @@ Route::get('/', 'App\Http\Controllers\HomeController@homepage');
 Route::get('/periode/{id}', 'App\Http\Controllers\HomeController@getPeriodeData');
 
 // Admin
+Route::get('/login', function(){ return redirect('/admin'); });
 Route::get('/admin', 'App\Http\Controllers\AdminController@admin');
 Route::post('/admin/verify', 'App\Http\Controllers\AdminController@verify');
 Route::get('/admin/keluar', 'App\Http\Controllers\AdminController@logout');
@@ -27,9 +28,7 @@ Route::get('/admin/data_covid19/{id_kelurahan}/hapus_data/{id}', 'App\Http\Contr
 
 // Periode
 Route::get('/admin/periode', 'App\Http\Controllers\AdminController@periode');
-Route::post('/admin/periode/simpan_data', 'App\Http\Controllers\AdminController@simpan_data_periode');
-Route::post('/admin/periode/ubah_data', 'App\Http\Controllers\AdminController@ubah_data_periode');
-Route::get('/admin/periode/hapus_data/{id}', 'App\Http\Controllers\AdminController@hapus_data_periode');
+Route::get('/admin/periode/kosongkan_data/{id}', 'App\Http\Controllers\AdminController@kosongkan_data_periode');
 
 // User
 Route::get('/admin/user', 'App\Http\Controllers\AdminController@user');

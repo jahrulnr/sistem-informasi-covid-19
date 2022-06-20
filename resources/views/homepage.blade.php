@@ -79,6 +79,14 @@
               </p>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="#periode" class="nav-link">
+              <i class="nav-icon far fa-calendar-alt"></i>
+              <p>
+                Periode
+              </p>
+            </a>
+          </li>
         </ul>
       </nav>
       <!-- /.sidebar-menu -->
@@ -92,9 +100,10 @@
     <section class="content pt-3">
       <script type="text/javascript">
         function make_chart(id, json_data){
-          var myChart = new Chart(id, {
+          let myChart = new Chart(id, {
             type: 'bar',
             options: {
+              responsive: true,
               maintainAspectRatio: false,
               locale: 'id',
               scales: {
@@ -103,7 +112,7 @@
                     beginAtZero: true
                   }
                 }]
-              }
+              },
             },
             data: json_data,
           });
@@ -112,11 +121,11 @@
 
       <!-- Chart Content -->
       <div class="col-12">
-        <div class="card">
+        <div class="card" id="periode-card">
           <div class="card-header border-0">
             <div class="d-flex justify-content-between">
               <h3 class="card-title">
-                Data Covid-19 dari {{ count($priode) }} priode terakhir
+                Data Covid-19 dari {{ $periode != null ? count($periode) : 0 }} periode terakhir
               </h3>
             </div>
           </div>
@@ -125,8 +134,9 @@
               <canvas id="covid-chart" height="200"></canvas>
               <script type="text/javascript">
                 make_chart('covid-chart', {
+                  @if($periode != null)
                   labels: [
-                    @foreach($priode as $p)
+                    @foreach($periode as $p)
                     "{{$p[1]}}",
                     @endforeach
                     ],
@@ -148,9 +158,9 @@
                     fill: false
                   }, { 
                     data: [
-                      {{implode(",", $orange)}}
+                      {{implode(",", $Oren)}}
                     ],
-                    label: "Orange",
+                    label: "Oren",
                     borderColor: "#fa0",
                     backgroundColor:"#fa0",
                     fill: false
@@ -163,6 +173,7 @@
                     backgroundColor:"#e00",
                     fill: false
                   }]
+                  @endif
                 });
               </script>
             </div>
@@ -171,26 +182,38 @@
       </div>
       <!-- Chart Content -->
 
-      <!-- Chart Content -->
       <div class="col-12">
         <div class="card">
           <div class="card-header border-0">
             <div class="col-11 col-md-5 col-lg-4 d-flex">
               <label style="padding-top: 0.2rem;" class="mr-2">Periode</label>
               <select class="form-control form-control-sm" id="periode" name="periode">
-                @foreach(array_reverse($priode) as $p)
+                @if($periode != null)
+                @foreach(array_reverse($periode) as $p)
                 <option value="{{ $p[0] }}">{{ $p[1] }}</option>
                 @endforeach
+                @endif
               </select>
-            </div>      
-            <hr class="mb-0" />        
+            </div>       
           </div>
+          <hr class="mb-0 mt-0" /> 
           <div class="card-body">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>Kelurahan</th>
+                  <th>Jumlah Positif</th>
+                  <th>Rata-Rata Positif per RW</th>
+                </tr>
+              </thead>
+              <tbody id="table_periode"></tbody>
+            </table>
+            <hr class="mb-2 mt-3" /> 
             <div class="row" id="chart_periode"></div>
           </div>
         </div>
       </div>
-      <!-- Chart Content -->
 
     </section>
   </div>
@@ -204,27 +227,62 @@
   <aside class="control-sidebar control-sidebar-dark">
   </aside>
 
+  <data class="d-none">
+    <div id="chart-template">
+      <div class="col-md-6">
+        <h5 class="mb-0">
+          Kelurahan __kelurahan__
+        </h5>
+        <div class="position-relative mb-4">
+          <canvas id="covid-chart-__id__" height="200"></canvas>
+          <xcript>make_chart("covid-chart-__id__", __json__);</xcript>
+        </div>
+      </div>
+    </div>
+    <div id="table-body-template">
+      <tr_data>
+        <td_data class="w-auto" align="center">__no__.</td_data>
+        <td_data>__kelurahan__</td_data>
+        <td_data><span class="fas fa-circle" style="color:var(__j_color__)"></span> __jumlah__</td_data>
+        <td_data><span class="fas fa-circle" style="color:var(__r_color__)"></span> __rata2__</td_data>
+      </tr_data>
+    </div>
+  </data>
+
   <script type="text/javascript">
     $('#periode').select2();
 
     function getJSON(id){
-      $.ajax({url: "/periode/" + id, success: function(result){
-        if(result == '[]'){
+      $.ajax({url: "/periode/" + id, success: function(data){
+        if(data == null){
           $('#chart_periode').html("Belum ada data.");
           return false;
         }
-        var data = JSON.parse(result);
-        var show_chart = "";
-        var j = 1;
+        let show_table = "";
+        let show_chart = "";
+        let j = 1;
 
         $.each(data, function(i, v){
-          var kelurahan = i;
-          var c = '<div class="col-md-6"><h5 class="mb-0">Kelurahan '+kelurahan+'</h5><div class="position-relative mb-4"><canvas id="covid-chart-'
-          + j
-          +'" height="200"></canvas><script>make_chart("covid-chart-'+j+'", '+JSON.stringify(v)+');<\/script></div></div>';
+          let kelurahan = i;
+          let d = $("#table-body-template").html()
+            .replace("__no__", j)
+            .replace("__kelurahan__", kelurahan)
+            .replace("__j_color__", v.status_jumlah[0])
+            .replace("__jumlah__", v.jumlah)
+            .replace("__r_color__", v.status_rata2[0])
+            .replace("__rata2__", v.rata2)
+            .replaceAll("tr_data", "tr")
+            .replaceAll("td_data", "td");
+          let c = $("#chart-template").html()
+            .replace("__kelurahan__", kelurahan)
+            .replaceAll("__id__", j)
+            .replace("__json__", JSON.stringify(v))
+            .replaceAll("xcript", "script");
+          show_table += d;
           show_chart += c;
           j++;
         });
+        $("#table_periode").html(show_table);
         $('#chart_periode').html(show_chart);
       }});
     }
@@ -233,6 +291,12 @@
       getJSON($('#periode').val());
       $('#periode').change(function(){
         getJSON($(this).val());
+      });
+
+      $("a").click(function(){
+        let htag = window.location.hash;
+        if(htag == "#periode")
+          $("#periode-card").focus();
       });
     });
   </script>

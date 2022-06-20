@@ -51,7 +51,7 @@
 			<tbody>
 				@foreach($data as $d)
 				<tr>
-					<td>
+					<td class="w-auto">
 						{{ $i }}.
 					</td>
 					<td>
@@ -60,14 +60,16 @@
 					<td>
 						{{ $d->nama }}
 					</td>
-					<td align="center">
-						{{ $d->pasword = null }}
+					<td align="center" class="w-auto">
+						@php
+							$d->pasword = null;
+						@endphp
 						<data class="d-none" id="data-{{ $d->id_user}}">{{ json_encode($d) }}</data>
 						<button class="btn btn-primary btn-sm mb-1"  data-toggle="modal" data-target="#edit" onclick="ubah_data('#data-{{ $d->id_user }}');">
-							<span class="fas fa-pencil-alt fa-sm"></span>
+							<span class="fas fa-pencil-alt fa-sm"></span> Ubah
 						</button>
 						<button class="btn btn-danger btn-sm mb-1" data-toggle="modal" data-target="#hapus" onclick="hapus_data({{ $d->id_user }})">
-							<span class="fas fa-trash fa-sm"></span>
+							<span class="fas fa-trash fa-sm"></span> Hapus
 						</button>
 					</td>
 				</tr>

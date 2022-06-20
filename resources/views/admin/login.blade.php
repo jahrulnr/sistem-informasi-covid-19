@@ -21,7 +21,7 @@
 </head>
 <style type="text/css">
   .login-page {
-    background: url('/img/pekanbaru.webp') center !important;
+    background: url('/img/covid19.jpg') center !important;
     background-size: cover !important;
   }
 </style>

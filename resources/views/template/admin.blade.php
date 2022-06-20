@@ -9,6 +9,7 @@
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="{{ asset('plugins/fontawesome-free/css/all.min.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/all.min.css">
   <!-- Ionicons -->
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <!-- overlayScrollbars -->
@@ -86,7 +87,10 @@
                   <p>Kelola Kelurahan</p>
                 </a>
               </li>
-              @foreach($kelurahan as $l)
+              <?php
+                $kelurahan_sb = DB::table('kelurahan')->orderby('kelurahan', 'asc')->get();
+              ?>
+              @foreach($kelurahan_sb as $l)
               <li class="nav-item">
                 <a href="{{ asset('admin/data_covid19/' . $l->id_kelurahan) }}" class="ml-3 nav-link">
                   <i class="fas fa-city nav-icon"></i>
